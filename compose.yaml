@@ -1,0 +1,37 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: travelpal
+      MYSQL_USER: travelpal
+      MYSQL_PASSWORD: travelpal
+      MYSQL_ROOT_PASSWORD: root
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      retries: 12
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/travelpal
+      SPRING_DATASOURCE_USERNAME: travelpal
+      SPRING_DATASOURCE_PASSWORD: travelpal
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
+      API_MOCK: ${API_MOCK:-true}
+      TRIPADVISOR_API_KEY: ${TRIPADVISOR_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "8080:8080"
+volumes:
+  dbdata:
