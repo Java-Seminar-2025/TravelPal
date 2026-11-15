@@ -2,10 +2,20 @@ package com.travelpal.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
-import java.util.Objects;
 
 @Embeddable
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
 public class UserBadgeId implements Serializable {
 
     @Column(name = "user_id")
@@ -13,25 +23,4 @@ public class UserBadgeId implements Serializable {
 
     @Column(name = "badge_code", length = 40)
     private String badgeCode;
-
-    public UserBadgeId() {}
-
-    public UserBadgeId(Long userId, String badgeCode) {
-        this.userId = userId;
-        this.badgeCode = badgeCode;
-    }
-
-    // hashCode and equals
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UserBadgeId)) return false;
-        UserBadgeId that = (UserBadgeId) o;
-        return Objects.equals(userId, that.userId) && Objects.equals(badgeCode, that.badgeCode);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userId, badgeCode);
-    }
 }

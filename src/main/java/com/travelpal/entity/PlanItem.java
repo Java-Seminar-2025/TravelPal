@@ -1,10 +1,19 @@
 package com.travelpal.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import java.util.List;
 
 @Entity
 @Table(name = "plan_items")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlanItem {
 
     @Id
@@ -29,25 +38,4 @@ public class PlanItem {
 
     @OneToMany(mappedBy = "planItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Visit> visits;
-
-    // Constructors, Getters, and Setters
-    public PlanItem() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Plan getPlan() { return plan; }
-    public void setPlan(Plan plan) { this.plan = plan; }
-
-    public String getTripadvisorLocationId() { return tripadvisorLocationId; }
-    public void setTripadvisorLocationId(String tripadvisorLocationId) { this.tripadvisorLocationId = tripadvisorLocationId; }
-
-    public Integer getDayNumber() { return dayNumber; }
-    public void setDayNumber(Integer dayNumber) { this.dayNumber = dayNumber; }
-
-    public Integer getOrderIndex() { return orderIndex; }
-    public void setOrderIndex(Integer orderIndex) { this.orderIndex = orderIndex; }
-
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
 }

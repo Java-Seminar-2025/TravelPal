@@ -1,10 +1,19 @@
 package com.travelpal.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_badges")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserBadge {
 
     @EmbeddedId
@@ -20,18 +29,4 @@ public class UserBadge {
 
     @Column(name = "awarded_at", nullable = false, updatable = false)
     private LocalDateTime awardedAt = LocalDateTime.now();
-
-    // Constructors, Getters, and Setters
-    public UserBadge() {}
-
-    public UserBadgeId getId() { return id; }
-    public void setId(UserBadgeId id) { this.id = id; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
-    public String getBadgeCode() { return badgeCode; }
-
-    public LocalDateTime getAwardedAt() { return awardedAt; }
-    public void setAwardedAt(LocalDateTime awardedAt) { this.awardedAt = awardedAt; }
 }

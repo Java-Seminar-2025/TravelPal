@@ -1,11 +1,19 @@
 package com.travelpal.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "ratings", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "plan_id"})
 })
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Rating {
 
     @Id
@@ -21,26 +29,8 @@ public class Rating {
     private Plan plan;
 
     @Column(nullable = false)
-    private Byte stars;
+    private Short stars; // Maps to PostgreSQL smallint constraint
 
     @Column(length = 500)
     private String comment;
-
-    // Constructors, Getters, and Setters
-    public Rating() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
-    public Plan getPlan() { return plan; }
-    public void setPlan(Plan plan) { this.plan = plan; }
-
-    public Byte getStars() { return stars; }
-    public void setStars(Byte stars) { this.stars = stars; }
-
-    public String getComment() { return comment; }
-    public void setComment(String comment) { this.comment = comment; }
 }
