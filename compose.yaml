@@ -9,7 +9,11 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - travelpal-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travelpal -d travelpal"]
+      interval: 5s
+      retries: 12
   app:
     profiles: ["app"]
     build:
@@ -19,9 +23,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/travelpal
-      SPRING_DATASOURCE_USERNAME: travelpal
-      SPRING_DATASOURCE_PASSWORD: travelpal
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/travelpal
       SPRING_DOCKER_COMPOSE_ENABLED: "false"
       API_MOCK: ${API_MOCK:-true}
       TRIPADVISOR_API_KEY: ${TRIPADVISOR_API_KEY:-}
@@ -29,5 +31,7 @@ services:
     ports:
       - "8080:8080"
 volumes:
-  postgres_data:
-    driver: local
+  # All database data (users, plans, ...) lives here and survives restarts and `docker compose down`.
+  # Only `docker compose down -v` deletes it.
+  travelpal-data:
+    name: travelpal-data

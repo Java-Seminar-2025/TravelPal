@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,8 +34,11 @@ public class Adventure {
     private LocalDateTime startedAt = LocalDateTime.now();
 
     @Column(nullable = false, length = 15)
-    private String status = "ACTIVE";
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.ACTIVE;
 
     @OneToMany(mappedBy = "adventure", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Visit> visits;
+    private List<Visit> visits = new ArrayList<>();
+
+    public enum Status { ACTIVE, COMPLETED, ABANDONED }
 }

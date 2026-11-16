@@ -34,7 +34,7 @@ class PlanRepositoryTest {
         plan.setTitle("Barcelona Getaway");
         plan.setCity("Barcelona"); // Use a unique city not present in seed data
         plan.setDays(4);
-        plan.setVisibility("PUBLIC");
+        plan.setVisibility(Plan.Visibility.PUBLIC);
         plan.setAiGenerated(false);
         entityManager.persistAndFlush(plan);
 

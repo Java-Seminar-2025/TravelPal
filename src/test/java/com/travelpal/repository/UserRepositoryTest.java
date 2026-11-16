@@ -26,7 +26,7 @@ class UserRepositoryTest {
         user.setUsername("testuser");
         user.setEmail("test@travelpal.com");
         user.setPasswordHash("hashedpassword");
-        user.setRole("USER");
+        user.setRole(User.Role.USER);
         user.setXp(150);
         entityManager.persistAndFlush(user);
 
