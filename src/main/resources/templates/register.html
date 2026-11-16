@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sign up')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments :: navbar}"></nav>
+<main class="container" style="max-width: 420px">
+    <h1 class="h3 mb-3">Create an account</h1>
+
+    <form th:action="@{/register}" th:object="${form}" method="post" class="card card-body" novalidate>
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input th:field="*{username}" class="form-control" th:errorclass="is-invalid" autofocus>
+            <div class="invalid-feedback" th:errors="*{username}"></div>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input th:field="*{email}" type="email" class="form-control" th:errorclass="is-invalid">
+            <div class="invalid-feedback" th:errors="*{email}"></div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password <span class="text-secondary small">(at least 8 characters)</span></label>
+            <input th:field="*{password}" type="password" class="form-control" th:errorclass="is-invalid">
+            <div class="invalid-feedback" th:errors="*{password}"></div>
+        </div>
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Repeat password</label>
+            <input th:field="*{confirmPassword}" type="password" class="form-control" th:errorclass="is-invalid">
+            <div class="invalid-feedback" th:errors="*{confirmPassword}"></div>
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Sign up</button>
+    </form>
+    <p class="mt-3 text-center">Already have an account? <a th:href="@{/login}">Log in</a></p>
+</main>
+</body>
+</html>
