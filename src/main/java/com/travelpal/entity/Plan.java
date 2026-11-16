@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -39,7 +40,8 @@ public class Plan {
     private Integer days;
 
     @Column(nullable = false, length = 10)
-    private String visibility = "PRIVATE";
+    @Enumerated(EnumType.STRING)
+    private Visibility visibility = Visibility.PRIVATE;
 
     @Column(name = "ai_generated", nullable = false)
     private Boolean aiGenerated = false;
@@ -48,11 +50,13 @@ public class Plan {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PlanItem> planItems;
+    private List<PlanItem> planItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Adventure> adventures;
+    private List<Adventure> adventures = new ArrayList<>();
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Rating> ratings;
+    private List<Rating> ratings = new ArrayList<>();
+
+    public enum Visibility { PRIVATE, PUBLIC }
 }
