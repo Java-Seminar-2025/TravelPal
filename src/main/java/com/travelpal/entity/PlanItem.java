@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -37,5 +38,5 @@ public class PlanItem {
     private String note;
 
     @OneToMany(mappedBy = "planItem", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Visit> visits;
+    private List<Visit> visits = new ArrayList<>();
 }

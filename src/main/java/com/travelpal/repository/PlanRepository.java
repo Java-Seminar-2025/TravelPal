@@ -2,13 +2,11 @@ package com.travelpal.repository;
 
 import com.travelpal.entity.Plan;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface PlanRepository extends JpaRepository<Plan, Long> {
     List<Plan> findByOwnerId(Long ownerId);
     List<Plan> findByCityIgnoreCase(String city);
-    List<Plan> findByVisibility(String visibility);
+    List<Plan> findByVisibility(Plan.Visibility visibility);
 }
