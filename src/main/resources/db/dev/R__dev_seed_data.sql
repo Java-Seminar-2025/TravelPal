@@ -3,16 +3,16 @@
 -- All users log in with the password: password
 -- Quick test accounts: admin / password (ADMIN) and user / password (USER)
 
-INSERT INTO users (username, email, password_hash, role, xp) VALUES
-    ('bkalinic', 'bartul@travelpal.com', '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 1000),
-    ('renco13',  'renzo@travelpal.com',  '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 1000),
-    ('sarah',    'sarah@travelpal.com',  '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER',  320),
-    ('admin',    'admin@travelpal.com',  '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 0),
-    ('user',     'user@travelpal.com',   '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER',  0)
+INSERT INTO users (id, username, email, password_hash, role, xp) VALUES
+    (gen_random_uuid(), 'bkalinic', 'bartul@travelpal.com', '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 1000),
+    (gen_random_uuid(), 'renco13',  'renzo@travelpal.com',  '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 1000),
+    (gen_random_uuid(), 'sarah',    'sarah@travelpal.com',  '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER',  320),
+    (gen_random_uuid(), 'admin',    'admin@travelpal.com',  '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 0),
+    (gen_random_uuid(), 'user',     'user@travelpal.com',   '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER',  0)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO plans (owner_id, title, city, days, visibility, ai_generated)
-SELECT u.id, p.title, p.city, p.days, p.visibility, p.ai_generated
+INSERT INTO plans (id, owner_id, title, city, days, visibility, ai_generated)
+SELECT gen_random_uuid(), u.id, p.title, p.city, p.days, p.visibility, p.ai_generated
 FROM (VALUES
     ('bkalinic', 'Weekend Getaway in Paris', 'Paris', 3, 'PUBLIC',  FALSE),
     ('renco13',  'Epic Tokyo Adventure',     'Tokyo', 7, 'PUBLIC',  TRUE),
