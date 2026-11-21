@@ -20,9 +20,13 @@
             <form th:if="${plan.visibility.name() == 'PUBLIC'}" th:action="@{/plans/{id}/copy(id=${plan.id})}" method="post">
                 <button class="btn btn-outline-success btn-sm" type="submit">Copy Plan</button>
             </form>
-            <form th:if="${plan.owner.username == #authentication.name}" th:action="@{/plans/{id}/delete(id=${plan.id})}" method="post">
-                <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
-            </form>
+            <th:block th:if="${canModify}">
+                <a class="btn btn-outline-primary btn-sm" th:href="@{/plans/{id}/edit(id=${plan.id})}">Edit</a>
+                <form th:action="@{/plans/{id}/delete(id=${plan.id})}" method="post"
+                      onsubmit="return confirm('Delete this plan and all its items? This cannot be undone.')">
+                    <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
+                </form>
+            </th:block>
         </div>
     </div>
 
@@ -34,6 +38,7 @@
             <th>Order</th>
             <th>Location ID</th>
             <th>Note</th>
+            <th th:if="${canModify}"></th>
         </tr>
         </thead>
         <tbody>
@@ -42,12 +47,17 @@
             <td th:text="${item.orderIndex}">1</td>
             <td th:text="${item.tripadvisorLocationId}">LOC123</td>
             <td th:text="${item.note}">Note</td>
+            <td th:if="${canModify}" class="text-end">
+                <form th:action="@{/plans/{id}/items/{itemId}/delete(id=${plan.id}, itemId=${item.id})}" method="post" class="m-0">
+                    <button class="btn btn-link btn-sm text-danger p-0" type="submit">Remove</button>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>
     <p class="text-muted mb-4" th:if="${#lists.isEmpty(plan.planItems)}">No items in this plan yet.</p>
 
-    <div class="card card-body" style="max-width: 540px" th:if="${plan.owner.username == #authentication.name}">
+    <div class="card card-body" style="max-width: 540px" th:if="${canModify}">
         <h3 class="h6 mb-3">Add Plan Item</h3>
         <form th:action="@{/plans/{id}/items(id=${plan.id})}" th:object="${itemForm}" method="post" novalidate>
             <div class="mb-3">

@@ -17,6 +17,12 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+/**
+ * Travel plans. Ownership rules:
+ * - a new plan always belongs to the logged-in user who created it
+ * - everyone logged in can view PUBLIC plans; PRIVATE plans only by their owner or an admin
+ * - only the owner or an admin can edit a plan, add/remove its items or delete it
+ */
 @Service
 @RequiredArgsConstructor
 public class PlanService {
@@ -42,43 +48,62 @@ public class PlanService {
 
     @Transactional(readOnly = true)
     public Plan getPlanDetail(UUID planId, String username) {
-        Plan plan = planRepository.findWithDetailsById(planId)
-                .orElseThrow(() -> new NoSuchElementException("Plan not found: " + planId));
+        Plan plan = findPlan(planId);
         User currentUser = getUserByUsername(username);
 
-        boolean isOwner = plan.getOwner().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getRole() == User.Role.ADMIN;
-        boolean isPublic = plan.getVisibility() == Plan.Visibility.PUBLIC;
-
-        if (!isPublic && !isOwner && !isAdmin) {
+        if (plan.getVisibility() != Plan.Visibility.PUBLIC && !isOwnerOrAdmin(plan, currentUser)) {
             throw new AccessDeniedException("You do not have permission to view this plan");
         }
 
         plan.getPlanItems().sort(Comparator
                 .comparing(PlanItem::getDayNumber)
                 .thenComparing(PlanItem::getOrderIndex));
-
         return plan;
+    }
+
+    /** True if this user may edit/delete the plan (owner or admin). Used to show or hide buttons. */
+    @Transactional(readOnly = true)
+    public boolean canModify(Plan plan, String username) {
+        return isOwnerOrAdmin(plan, getUserByUsername(username));
+    }
+
+    /** Fills a form with the plan's current values, for the edit page. */
+    @Transactional(readOnly = true)
+    public PlanForm getEditForm(UUID planId, String username) {
+        Plan plan = getModifiablePlan(planId, username);
+        PlanForm form = new PlanForm();
+        form.setTitle(plan.getTitle());
+        form.setCity(plan.getCity());
+        form.setDays(plan.getDays());
+        form.setVisibility(plan.getVisibility());
+        form.setAiGenerated(plan.getAiGenerated());
+        return form;
     }
 
     @Transactional
     public Plan createPlan(PlanForm form, String username) {
-        User owner = getUserByUsername(username);
-
         Plan plan = new Plan();
-        plan.setOwner(owner);
-        plan.setTitle(form.getTitle().trim());
-        plan.setCity(form.getCity().trim());
-        plan.setDays(form.getDays());
-        plan.setVisibility(form.getVisibility());
+        plan.setOwner(getUserByUsername(username));
         plan.setAiGenerated(form.isAiGenerated());
+        applyForm(plan, form);
+        return planRepository.save(plan);
+    }
 
+    /** Changes title, city, days and visibility. The owner never changes, even when an admin edits. */
+    @Transactional
+    public Plan updatePlan(UUID planId, PlanForm form, String username) {
+        Plan plan = getModifiablePlan(planId, username);
+        int lastUsedDay = plan.getPlanItems().stream().mapToInt(PlanItem::getDayNumber).max().orElse(0);
+        if (form.getDays() < lastUsedDay) {
+            throw new IllegalArgumentException("This plan has items on day " + lastUsedDay + ", so it needs at least " + lastUsedDay + " days");
+        }
+        applyForm(plan, form);
         return planRepository.save(plan);
     }
 
     @Transactional
     public PlanItem addItem(UUID planId, PlanItemForm form, String username) {
-        Plan plan = getOwnedOrAdminPlan(planId, username);
+        Plan plan = getModifiablePlan(planId, username);
 
         if (form.getDayNumber() > plan.getDays()) {
             throw new IllegalArgumentException("Day number cannot exceed plan duration (" + plan.getDays() + " days)");
@@ -97,18 +122,24 @@ public class PlanService {
     }
 
     @Transactional
+    public void removeItem(UUID planId, UUID itemId, String username) {
+        Plan plan = getModifiablePlan(planId, username);
+        boolean removed = plan.getPlanItems().removeIf(item -> item.getId().equals(itemId));
+        if (!removed) {
+            throw new NoSuchElementException("Item " + itemId + " is not part of plan " + planId);
+        }
+    }
+
+    @Transactional
     public Plan copyPublicPlan(UUID sourcePlanId, String username) {
-        Plan source = planRepository.findWithDetailsById(sourcePlanId)
-                .orElseThrow(() -> new NoSuchElementException("Plan not found: " + sourcePlanId));
+        Plan source = findPlan(sourcePlanId);
 
         if (source.getVisibility() != Plan.Visibility.PUBLIC) {
             throw new AccessDeniedException("Only public plans can be copied");
         }
 
-        User newOwner = getUserByUsername(username);
-
         Plan copy = new Plan();
-        copy.setOwner(newOwner);
+        copy.setOwner(getUserByUsername(username));
         copy.setCopiedFrom(source);
         copy.setTitle(source.getTitle() + " (Copy)");
         copy.setCity(source.getCity());
@@ -131,21 +162,35 @@ public class PlanService {
 
     @Transactional
     public void deletePlan(UUID planId, String username) {
-        Plan plan = getOwnedOrAdminPlan(planId, username);
-        planRepository.delete(plan);
+        planRepository.delete(getModifiablePlan(planId, username));
     }
 
-    private Plan getOwnedOrAdminPlan(UUID planId, String username) {
-        Plan plan = planRepository.findWithDetailsById(planId)
-                .orElseThrow(() -> new NoSuchElementException("Plan not found: " + planId));
-        User currentUser = getUserByUsername(username);
+    // --- helpers ---
 
-        boolean isOwner = plan.getOwner().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getRole() == User.Role.ADMIN;
-        if (!isOwner && !isAdmin) {
+    private void applyForm(Plan plan, PlanForm form) {
+        plan.setTitle(form.getTitle().trim());
+        plan.setCity(form.getCity().trim());
+        plan.setDays(form.getDays());
+        plan.setVisibility(form.getVisibility());
+    }
+
+    /** Loads the plan and checks the logged-in user owns it or is an admin; otherwise 403. */
+    private Plan getModifiablePlan(UUID planId, String username) {
+        Plan plan = findPlan(planId);
+        if (!isOwnerOrAdmin(plan, getUserByUsername(username))) {
             throw new AccessDeniedException("You do not have permission to modify this plan");
         }
         return plan;
+    }
+
+    /** Ownership is checked by user id, never by name or by anything the browser sends. */
+    private boolean isOwnerOrAdmin(Plan plan, User user) {
+        return plan.getOwner().getId().equals(user.getId()) || user.getRole() == User.Role.ADMIN;
+    }
+
+    private Plan findPlan(UUID planId) {
+        return planRepository.findWithDetailsById(planId)
+                .orElseThrow(() -> new NoSuchElementException("Plan not found: " + planId));
     }
 
     private User getUserByUsername(String username) {

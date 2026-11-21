@@ -13,6 +13,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.security.Principal;
 import java.util.UUID;
 
+/**
+ * Plan pages. The logged-in user always comes from {@link Principal} (the login session),
+ * never from the form, so nobody can act as another user. Permission checks live in PlanService.
+ */
 @Controller
 @RequestMapping("/plans")
 @RequiredArgsConstructor
@@ -52,13 +56,40 @@ public class PlanController {
     @GetMapping("/{id}")
     public String planDetail(@PathVariable UUID id, Principal principal, Model model) {
         Plan plan = planService.getPlanDetail(id, principal.getName());
-        model.addAttribute("plan", plan);
         if (!model.containsAttribute("itemForm")) {
             PlanItemForm itemForm = new PlanItemForm();
             itemForm.setOrderIndex(plan.getPlanItems().size() + 1);
             model.addAttribute("itemForm", itemForm);
         }
-        return "plans/detail";
+        return showDetail(plan, principal, model);
+    }
+
+    @GetMapping("/{id}/edit")
+    public String editPlanForm(@PathVariable UUID id, Principal principal, Model model) {
+        model.addAttribute("planForm", planService.getEditForm(id, principal.getName()));
+        model.addAttribute("planId", id);
+        return "plans/form";
+    }
+
+    @PostMapping("/{id}/edit")
+    public String updatePlan(@PathVariable UUID id,
+                             @Valid @ModelAttribute("planForm") PlanForm form,
+                             BindingResult bindingResult,
+                             Principal principal,
+                             Model model,
+                             RedirectAttributes redirectAttributes) {
+        model.addAttribute("planId", id);
+        if (bindingResult.hasErrors()) {
+            return "plans/form";
+        }
+        try {
+            planService.updatePlan(id, form, principal.getName());
+        } catch (IllegalArgumentException ex) {
+            bindingResult.rejectValue("days", "tooShort", ex.getMessage());
+            return "plans/form";
+        }
+        redirectAttributes.addFlashAttribute("message", "Plan updated.");
+        return "redirect:/plans/" + id;
     }
 
     @PostMapping("/{id}/items")
@@ -68,18 +99,23 @@ public class PlanController {
                           Principal principal,
                           Model model,
                           RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("plan", planService.getPlanDetail(id, principal.getName()));
-            return "plans/detail";
+        if (!bindingResult.hasErrors()) {
+            try {
+                planService.addItem(id, form, principal.getName());
+                redirectAttributes.addFlashAttribute("message", "Item added to plan.");
+                return "redirect:/plans/" + id;
+            } catch (IllegalArgumentException ex) {
+                bindingResult.rejectValue("dayNumber", "invalidDay", ex.getMessage());
+            }
         }
-        try {
-            planService.addItem(id, form, principal.getName());
-            redirectAttributes.addFlashAttribute("message", "Item added to plan.");
-        } catch (IllegalArgumentException ex) {
-            bindingResult.rejectValue("dayNumber", "invalidDay", ex.getMessage());
-            model.addAttribute("plan", planService.getPlanDetail(id, principal.getName()));
-            return "plans/detail";
-        }
+        return showDetail(planService.getPlanDetail(id, principal.getName()), principal, model);
+    }
+
+    @PostMapping("/{id}/items/{itemId}/delete")
+    public String removeItem(@PathVariable UUID id, @PathVariable UUID itemId,
+                             Principal principal, RedirectAttributes redirectAttributes) {
+        planService.removeItem(id, itemId, principal.getName());
+        redirectAttributes.addFlashAttribute("message", "Item removed.");
         return "redirect:/plans/" + id;
     }
 
@@ -95,5 +131,11 @@ public class PlanController {
         planService.deletePlan(id, principal.getName());
         redirectAttributes.addFlashAttribute("message", "Plan deleted.");
         return "redirect:/plans";
+    }
+
+    private String showDetail(Plan plan, Principal principal, Model model) {
+        model.addAttribute("plan", plan);
+        model.addAttribute("canModify", planService.canModify(plan, principal.getName()));
+        return "plans/detail";
     }
 }

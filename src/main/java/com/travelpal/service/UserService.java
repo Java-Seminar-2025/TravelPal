@@ -4,11 +4,14 @@ import com.travelpal.entity.User;
 import com.travelpal.repository.UserRepository;
 import com.travelpal.web.RegisterForm;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Registers new users and loads users for Spring Security's login.
@@ -26,6 +29,11 @@ public class UserService implements UserDetailsService {
 
     public boolean emailTaken(String email) {
         return userRepository.existsByEmail(email.trim().toLowerCase());
+    }
+
+    /** All users, oldest account first (used by the admin page). */
+    public List<User> findAllUsers() {
+        return userRepository.findAll(Sort.by("createdAt"));
     }
 
     public User register(RegisterForm form) {
