@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Embeddable
 @Getter
@@ -19,7 +20,7 @@ import java.io.Serializable;
 public class UserBadgeId implements Serializable {
 
     @Column(name = "user_id")
-    private Long userId;
+    private UUID userId;
 
     @Column(name = "badge_code", length = 40)
     private String badgeCode;

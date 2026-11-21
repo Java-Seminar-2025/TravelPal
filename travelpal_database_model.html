@@ -2867,7 +2867,7 @@ const { svg } = await mermaid.render('erd-svg', `erDiagram
   ADVENTURES ||--o{ VISITS : "records"
   PLAN_ITEMS ||--o{ VISITS : "checked in at"
   USERS {
-    bigint id PK
+    uuid id PK
     string username UK
     string email UK
     string password_hash
@@ -2876,9 +2876,9 @@ const { svg } = await mermaid.render('erd-svg', `erDiagram
     datetime created_at
   }
   PLANS {
-    bigint id PK
-    bigint owner_id FK
-    bigint copied_from_id FK
+    uuid id PK
+    uuid owner_id FK
+    uuid copied_from_id FK
     string title
     string city
     int days
@@ -2887,35 +2887,35 @@ const { svg } = await mermaid.render('erd-svg', `erDiagram
     datetime created_at
   }
   PLAN_ITEMS {
-    bigint id PK
-    bigint plan_id FK
+    uuid id PK
+    uuid plan_id FK
     string tripadvisor_location_id
     int day_number
     int order_index
     string note
   }
   ADVENTURES {
-    bigint id PK
-    bigint user_id FK
-    bigint plan_id FK
+    uuid id PK
+    uuid user_id FK
+    uuid plan_id FK
     datetime started_at
     string status
   }
   VISITS {
-    bigint id PK
-    bigint adventure_id FK
-    bigint plan_item_id FK
+    uuid id PK
+    uuid adventure_id FK
+    uuid plan_item_id FK
     datetime visited_at
   }
   RATINGS {
-    bigint id PK
-    bigint user_id FK
-    bigint plan_id FK
+    uuid id PK
+    uuid user_id FK
+    uuid plan_id FK
     int stars
     string comment
   }
   USER_BADGES {
-    bigint user_id PK
+    uuid user_id PK
     string badge_code PK
     datetime awarded_at
   }`);

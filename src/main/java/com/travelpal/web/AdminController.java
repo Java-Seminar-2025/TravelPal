@@ -16,7 +16,7 @@ public class AdminController {
 
     @GetMapping("/admin")
     public String admin(Model model) {
-        model.addAttribute("users", userRepository.findAll(Sort.by("id")));
+        model.addAttribute("users", userRepository.findAll(Sort.by("createdAt")));
         return "admin";
     }
 }

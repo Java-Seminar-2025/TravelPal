@@ -7,10 +7,9 @@
     <h1 class="h3 mb-3">Users</h1>
     <div class="table-responsive">
         <table class="table table-sm bg-white border">
-            <thead><tr><th>#</th><th>Username</th><th>Email</th><th>Role</th><th>XP</th><th>Joined</th></tr></thead>
+            <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>XP</th><th>Joined</th></tr></thead>
             <tbody>
             <tr th:each="u : ${users}">
-                <td th:text="${u.id}">1</td>
                 <td th:text="${u.username}">name</td>
                 <td th:text="${u.email}">mail</td>
                 <td th:text="${u.role}">USER</td>

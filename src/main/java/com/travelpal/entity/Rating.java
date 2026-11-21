@@ -6,6 +6,8 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "ratings", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "plan_id"})
@@ -17,8 +19,8 @@ import lombok.AllArgsConstructor;
 public class Rating {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
