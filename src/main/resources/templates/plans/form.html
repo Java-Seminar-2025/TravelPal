@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('New Plan')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments :: navbar}"></nav>
+
+<main class="container" style="max-width: 540px">
+    <h1 class="h3 mb-3">Create Travel Plan</h1>
+
+    <form th:action="@{/plans}" th:object="${planForm}" method="post" class="card card-body" novalidate>
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input th:field="*{title}" class="form-control" th:errorclass="is-invalid">
+            <div class="invalid-feedback" th:errors="*{title}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="city" class="form-label">City</label>
+            <input th:field="*{city}" class="form-control" th:errorclass="is-invalid">
+            <div class="invalid-feedback" th:errors="*{city}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="days" class="form-label">Days</label>
+            <input th:field="*{days}" type="number" min="1" max="60" class="form-control" th:errorclass="is-invalid">
+            <div class="invalid-feedback" th:errors="*{days}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="visibility" class="form-label">Visibility</label>
+            <select th:field="*{visibility}" class="form-select">
+                <option value="PRIVATE">PRIVATE</option>
+                <option value="PUBLIC">PUBLIC</option>
+            </select>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a class="btn btn-outline-secondary" th:href="@{/plans}">Cancel</a>
+            <button class="btn btn-primary" type="submit">Save Plan</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

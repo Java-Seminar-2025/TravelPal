@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Plans')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments :: navbar}"></nav>
+
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 m-0">Travel Plans</h1>
+        <a class="btn btn-primary" th:href="@{/plans/new}">+ New Plan</a>
+    </div>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <h2 class="h5 mb-3">My Plans</h2>
+    <div class="row g-3 mb-5" th:if="${!#lists.isEmpty(myPlans)}">
+        <div class="col-md-4" th:each="plan : ${myPlans}">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h3 class="h6 card-title" th:text="${plan.title}">Title</h3>
+                        <span class="badge text-bg-secondary" th:text="${plan.visibility}">PRIVATE</span>
+                    </div>
+                    <p class="text-muted small mb-2">
+                        <span th:text="${plan.city}">City</span> · <span th:text="${plan.days}">3</span> days
+                    </p>
+                    <a class="btn btn-sm btn-outline-primary" th:href="@{/plans/{id}(id=${plan.id})}">Open</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p class="text-muted mb-5" th:if="${#lists.isEmpty(myPlans)}">You don't have any plans yet.</p>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 m-0">Public Plans</h2>
+        <form th:action="@{/plans}" method="get" class="d-flex gap-2">
+            <input type="text" name="city" th:value="${cityFilter}" class="form-control form-control-sm" placeholder="Filter by city">
+            <button class="btn btn-sm btn-outline-secondary" type="submit">Filter</button>
+        </form>
+    </div>
+
+    <div class="row g-3" th:if="${!#lists.isEmpty(publicPlans)}">
+        <div class="col-md-4" th:each="plan : ${publicPlans}">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="h6 card-title" th:text="${plan.title}">Title</h3>
+                    <p class="text-muted small mb-2">
+                        <span th:text="${plan.city}">City</span> · <span th:text="${plan.days}">3</span> days
+                        · by <span th:text="${plan.owner.username}">owner</span>
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/plans/{id}(id=${plan.id})}">View</a>
+                        <form th:action="@{/plans/{id}/copy(id=${plan.id})}" method="post">
+                            <button class="btn btn-sm btn-outline-success" type="submit">Copy</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p class="text-muted" th:if="${#lists.isEmpty(publicPlans)}">No public plans found.</p>
+</main>
+</body>
+</html>

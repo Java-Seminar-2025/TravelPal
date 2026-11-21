@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${plan.title})}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments :: navbar}"></nav>
+
+<main class="container">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1" th:text="${plan.title}">Plan Title</h1>
+            <p class="text-muted mb-0">
+                <span th:text="${plan.city}">City</span> · <span th:text="${plan.days}">3</span> days
+                · <span class="badge text-bg-secondary" th:text="${plan.visibility}">PRIVATE</span>
+                · Owner: <span th:text="${plan.owner.username}">user</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <form th:if="${plan.visibility.name() == 'PUBLIC'}" th:action="@{/plans/{id}/copy(id=${plan.id})}" method="post">
+                <button class="btn btn-outline-success btn-sm" type="submit">Copy Plan</button>
+            </form>
+            <form th:if="${plan.owner.username == #authentication.name}" th:action="@{/plans/{id}/delete(id=${plan.id})}" method="post">
+                <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <h2 class="h5 mb-3">Itinerary Items</h2>
+    <table class="table table-bordered bg-white mb-4" th:if="${!#lists.isEmpty(plan.planItems)}">
+        <thead>
+        <tr>
+            <th>Day</th>
+            <th>Order</th>
+            <th>Location ID</th>
+            <th>Note</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${plan.planItems}">
+            <td th:text="${item.dayNumber}">1</td>
+            <td th:text="${item.orderIndex}">1</td>
+            <td th:text="${item.tripadvisorLocationId}">LOC123</td>
+            <td th:text="${item.note}">Note</td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="text-muted mb-4" th:if="${#lists.isEmpty(plan.planItems)}">No items in this plan yet.</p>
+
+    <div class="card card-body" style="max-width: 540px" th:if="${plan.owner.username == #authentication.name}">
+        <h3 class="h6 mb-3">Add Plan Item</h3>
+        <form th:action="@{/plans/{id}/items(id=${plan.id})}" th:object="${itemForm}" method="post" novalidate>
+            <div class="mb-3">
+                <label class="form-label">Tripadvisor Location ID</label>
+                <input th:field="*{tripadvisorLocationId}" class="form-control" th:errorclass="is-invalid">
+                <div class="invalid-feedback" th:errors="*{tripadvisorLocationId}"></div>
+            </div>
+            <div class="row g-2 mb-3">
+                <div class="col">
+                    <label class="form-label">Day Number</label>
+                    <input th:field="*{dayNumber}" type="number" min="1" class="form-control" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{dayNumber}"></div>
+                </div>
+                <div class="col">
+                    <label class="form-label">Order Index</label>
+                    <input th:field="*{orderIndex}" type="number" min="0" class="form-control" th:errorclass="is-invalid">
+                    <div class="invalid-feedback" th:errors="*{orderIndex}"></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Note</label>
+                <input th:field="*{note}" class="form-control" th:errorclass="is-invalid">
+                <div class="invalid-feedback" th:errors="*{note}"></div>
+            </div>
+            <button class="btn btn-primary btn-sm" type="submit">Add Item</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>
