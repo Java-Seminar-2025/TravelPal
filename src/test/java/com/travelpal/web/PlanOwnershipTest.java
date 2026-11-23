@@ -97,7 +97,7 @@ class PlanOwnershipTest {
     @Test
     void newPlanAlwaysBelongsToLoggedInUser() throws Exception {
         mockMvc.perform(post("/plans").with(csrf()).with(stranger)
-                        .param("title", "Zagreb Day").param("city", "Zagreb").param("days", "1")
+                        .param("title", "Zagreb Day").param("city", "Zagreb").param("cityLatitude", "43.51").param("cityLongitude", "16.44").param("days", "1")
                         .param("visibility", "PRIVATE")
                         .param("owner", explorer.getId().toString())      // attempts to pick another owner
                         .param("ownerId", explorer.getId().toString()))   // are ignored
@@ -134,7 +134,7 @@ class PlanOwnershipTest {
         dayTwo.setDayNumber(2);
 
         mockMvc.perform(post("/plans/" + publicPlan.getId() + "/edit").with(csrf()).with(owner)
-                        .param("title", "Split Weekend").param("city", "Split").param("days", "1")
+                        .param("title", "Split Weekend").param("city", "Split").param("cityLatitude", "43.51").param("cityLongitude", "16.44").param("days", "1")
                         .param("visibility", "PUBLIC"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeHasFieldErrors("planForm", "days"));
@@ -169,7 +169,7 @@ class PlanOwnershipTest {
 
     private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder editRequest(String planUrl, String title) {
         return post(planUrl + "/edit").with(csrf())
-                .param("title", title).param("city", "Split").param("days", "3").param("visibility", "PUBLIC");
+                .param("title", title).param("city", "Split").param("cityLatitude", "43.51").param("cityLongitude", "16.44").param("days", "3").param("visibility", "PUBLIC");
     }
 
     private User saveUser(String username, User.Role role) {

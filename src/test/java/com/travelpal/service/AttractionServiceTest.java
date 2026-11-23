@@ -2,6 +2,7 @@ package com.travelpal.service;
 
 import com.travelpal.dto.Attraction;
 import com.travelpal.dto.CityAttractions;
+import com.travelpal.dto.CityOption;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -100,6 +101,19 @@ class AttractionServiceTest {
 
         assertThat(result.latitude()).isEqualTo(43.7159);
         assertThat(result.longitude()).isEqualTo(10.4019);
+    }
+
+    @Test
+    void citySearchReturnsOnlyCitiesTownsAndVillagesWithAReadableLabel() {
+        expectSearch("Pisa", """
+                [{"name":"Pisa","display_name":"Pisa, Toscana, Italia","lat":"43.4715","lon":"10.6798","addresstype":"county","osm_type":"relation","osm_id":1},
+                 {"name":"Pisa","display_name":"Pisa, Toscana, Italia","lat":"43.7159","lon":"10.4019","addresstype":"city","osm_type":"relation","osm_id":2},
+                 {"name":"Torre di Pisa","display_name":"Torre di Pisa, Pisa","lat":"43.72","lon":"10.39","addresstype":"man_made","osm_type":"way","osm_id":3}]""");
+
+        assertThat(service.searchCities("Pisa"))
+                .containsExactly(new CityOption("Pisa", "Pisa, Toscana, Italia", 43.7159, 10.4019));
+        assertThat(service.searchCities(" pisa ")).hasSize(1);   // second search comes from the cache
+        osm.verify();
     }
 
     @Test

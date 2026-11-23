@@ -11,17 +11,24 @@ INSERT INTO users (id, username, email, password_hash, role, xp) VALUES
     (gen_random_uuid(), 'user',     'user@travelpal.com',   '{bcrypt}$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER',  0)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO plans (id, owner_id, title, city, days, visibility, ai_generated)
-SELECT gen_random_uuid(), u.id, p.title, p.city, p.days, p.visibility, p.ai_generated
+INSERT INTO plans (id, owner_id, title, city, city_latitude, city_longitude, days, visibility, ai_generated)
+SELECT gen_random_uuid(), u.id, p.title, p.city, p.lat, p.lon, p.days, p.visibility, p.ai_generated
 FROM (VALUES
-    ('bkalinic', 'Weekend Getaway in Paris', 'Paris', 3, 'PUBLIC',  FALSE),
-    ('renco13',  'Epic Tokyo Adventure',     'Tokyo', 7, 'PUBLIC',  TRUE),
-    ('sarah',    'Hidden Gems of Rome',      'Rome',  4, 'PRIVATE', FALSE),
-    ('bkalinic', 'Florence in 3 Days',       'Florence', 3, 'PUBLIC', FALSE),
-    ('renco13',  'Split Old Town & Marjan',  'Split',    2, 'PUBLIC', FALSE)
-) AS p(owner, title, city, days, visibility, ai_generated)
+    ('bkalinic', 'Weekend Getaway in Paris', 'Paris',    48.853495,   2.348391, 3, 'PUBLIC',  FALSE),
+    ('renco13',  'Epic Tokyo Adventure',     'Tokyo',    35.676860, 139.763895, 7, 'PUBLIC',  TRUE),
+    ('sarah',    'Hidden Gems of Rome',      'Rome',     41.893320,  12.482932, 4, 'PRIVATE', FALSE),
+    ('bkalinic', 'Florence in 3 Days',       'Florence', 43.769795,  11.255640, 3, 'PUBLIC',  FALSE),
+    ('renco13',  'Split Old Town & Marjan',  'Split',    43.511638,  16.439966, 2, 'PUBLIC',  FALSE)
+) AS p(owner, title, city, lat, lon, days, visibility, ai_generated)
 JOIN users u ON u.username = p.owner
 WHERE NOT EXISTS (SELECT 1 FROM plans x WHERE x.title = p.title AND x.owner_id = u.id);
+
+-- Demo plans created before plans had city coordinates (V3): fill them in.
+UPDATE plans SET city_latitude = 48.853495, city_longitude =   2.348391 WHERE title = 'Weekend Getaway in Paris' AND city_latitude IS NULL;
+UPDATE plans SET city_latitude = 35.676860, city_longitude = 139.763895 WHERE title = 'Epic Tokyo Adventure'     AND city_latitude IS NULL;
+UPDATE plans SET city_latitude = 41.893320, city_longitude =  12.482932 WHERE title = 'Hidden Gems of Rome'      AND city_latitude IS NULL;
+UPDATE plans SET city_latitude = 43.769795, city_longitude =  11.255640 WHERE title = 'Florence in 3 Days'       AND city_latitude IS NULL;
+UPDATE plans SET city_latitude = 43.511638, city_longitude =  16.439966 WHERE title = 'Split Old Town & Marjan'  AND city_latitude IS NULL;
 
 -- Stops for the Florence and Split demo plans (coordinates and ids from OpenStreetMap).
 INSERT INTO plan_items (id, plan_id, name, latitude, longitude, osm_id, day_number, order_index, note)

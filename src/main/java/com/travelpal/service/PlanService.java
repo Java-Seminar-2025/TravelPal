@@ -74,6 +74,8 @@ public class PlanService {
         PlanForm form = new PlanForm();
         form.setTitle(plan.getTitle());
         form.setCity(plan.getCity());
+        form.setCityLatitude(plan.getCityLatitude());
+        form.setCityLongitude(plan.getCityLongitude());
         form.setDays(plan.getDays());
         form.setVisibility(plan.getVisibility());
         form.setAiGenerated(plan.getAiGenerated());
@@ -146,6 +148,8 @@ public class PlanService {
         copy.setCopiedFrom(source);
         copy.setTitle(source.getTitle() + " (Copy)");
         copy.setCity(source.getCity());
+        copy.setCityLatitude(source.getCityLatitude());
+        copy.setCityLongitude(source.getCityLongitude());
         copy.setDays(source.getDays());
         copy.setVisibility(Plan.Visibility.PRIVATE);
         copy.setAiGenerated(source.getAiGenerated());
@@ -177,6 +181,8 @@ public class PlanService {
     private void applyForm(Plan plan, PlanForm form) {
         plan.setTitle(form.getTitle().trim());
         plan.setCity(form.getCity().trim());
+        plan.setCityLatitude(form.getCityLatitude());
+        plan.setCityLongitude(form.getCityLongitude());
         plan.setDays(form.getDays());
         plan.setVisibility(form.getVisibility());
     }

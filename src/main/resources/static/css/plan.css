@@ -1,0 +1,56 @@
+/* Day colors: used by the plan list AND the map (plan-map.js reads these variables), so they always match. */
+:root {
+    --tp-day-0: #2563eb;  /* day 1 blue   */
+    --tp-day-1: #16a34a;  /* day 2 green  */
+    --tp-day-2: #9333ea;  /* day 3 purple */
+    --tp-day-3: #dc2626;  /* day 4 red    */
+    --tp-day-4: #0891b2;  /* day 5 cyan   */
+    --tp-day-5: #ca8a04;  /* day 6 amber  */
+    --tp-day-6: #db2777;  /* day 7 pink   (day 8 starts again at blue) */
+}
+.tp-color-0 { --day: var(--tp-day-0); }
+.tp-color-1 { --day: var(--tp-day-1); }
+.tp-color-2 { --day: var(--tp-day-2); }
+.tp-color-3 { --day: var(--tp-day-3); }
+.tp-color-4 { --day: var(--tp-day-4); }
+.tp-color-5 { --day: var(--tp-day-5); }
+.tp-color-6 { --day: var(--tp-day-6); }
+
+/* One block per day in the plan list */
+.tp-day {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-left: 5px solid var(--day);
+    border-radius: .5rem;
+    margin-bottom: 1rem;
+}
+.tp-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: .5rem .75rem;
+    border-bottom: 1px solid #f1f3f5;
+}
+.tp-day-title { font-weight: 600; color: var(--day); }
+.tp-day-route { font-size: .8rem; color: #6c757d; }
+.tp-stop-row {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    padding: .45rem .75rem;
+}
+.tp-stop-row + .tp-stop-row { border-top: 1px solid #f1f3f5; }
+
+/* Numbered circle: same look in the list and on the map */
+.tp-stop {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--day);
+    color: #fff;
+    font: 600 12px/22px system-ui, sans-serif;
+    text-align: center;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+}

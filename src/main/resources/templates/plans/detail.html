@@ -3,6 +3,8 @@
 <head th:replace="~{fragments :: head(${plan.title})}"></head>
 <body class="bg-light">
 <nav th:replace="~{fragments :: navbar}"></nav>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" th:href="@{/css/plan.css}">
 
 <main class="container pb-5">
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
@@ -31,41 +33,44 @@
     </div>
 
     <div class="row g-4">
-        <!-- Map: the plan's stops (blue, numbered) and, for owners/admins, nearby attractions (orange) -->
+        <!-- Map: the plan's stops, walking routes and, for owners/admins, nearby attractions (orange) -->
         <div class="col-lg-7">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-            <div id="map" class="border rounded" style="height: 480px"
-                 th:data-city="${plan.city}" th:data-can-modify="${canModify}"></div>
-            <ul id="route-summary" class="list-unstyled small mt-2 mb-1"></ul>
+            <div id="map" class="border rounded" style="height: 520px"
+                 th:data-city="${plan.city}" th:data-lat="${plan.cityLatitude}" th:data-lon="${plan.cityLongitude}"
+                 th:data-can-modify="${canModify}"></div>
+            <p id="route-credit" class="small text-muted mt-2 mb-1" hidden>
+                Walking routes: <a href="https://routing.openstreetmap.de/" target="_blank" rel="noopener">FOSSGIS OSRM</a>,
+                OpenStreetMap data. Always check the way on site.
+            </p>
             <p id="map-status" class="small text-muted mb-0"></p>
         </div>
 
         <div class="col-lg-5">
-            <h2 class="h5 mb-3">Itinerary</h2>
-            <table class="table table-sm bg-white border mb-4" th:if="${!#lists.isEmpty(plan.planItems)}">
-                <thead>
-                <tr><th>Day</th><th>#</th><th>Place</th><th th:if="${canModify}"></th></tr>
-                </thead>
-                <tbody>
+            <h2 class="h5 mb-3">Plan</h2>
+
+            <!-- One block per day; the color class matches the day's markers and route on the map -->
+            <div th:each="entry : ${itemsByDay}" class="tp-day"
+                 th:classappend="${'tp-color-' + ((entry.key - 1) % 7)}">
+                <div class="tp-day-header">
+                    <span class="tp-day-title" th:text="${'Day ' + entry.key}">Day 1</span>
+                    <span class="tp-day-route" th:id="${'route-day-' + entry.key}"></span>
+                </div>
                 <!-- data-* attributes are read by plan-map.js to draw the markers -->
-                <tr th:each="item : ${plan.planItems}" class="plan-item"
-                    th:data-name="${item.name}" th:data-lat="${item.latitude}" th:data-lon="${item.longitude}"
-                    th:data-day="${item.dayNumber}" th:data-order="${item.orderIndex}">
-                    <td th:text="${item.dayNumber}">1</td>
-                    <td th:text="${item.orderIndex}">1</td>
-                    <td>
-                        <span th:text="${item.name}">Place</span>
+                <div th:each="item : ${entry.value}" class="tp-stop-row plan-item"
+                     th:data-name="${item.name}" th:data-lat="${item.latitude}" th:data-lon="${item.longitude}"
+                     th:data-day="${item.dayNumber}" th:data-order="${item.orderIndex}">
+                    <span class="tp-stop" th:text="${item.orderIndex}">1</span>
+                    <div class="flex-grow-1">
+                        <div th:text="${item.name}">Place</div>
                         <div class="small text-muted" th:if="${item.note}" th:text="${item.note}">Note</div>
-                    </td>
-                    <td th:if="${canModify}" class="text-end">
-                        <form th:action="@{/plans/{id}/items/{itemId}/delete(id=${plan.id}, itemId=${item.id})}" method="post" class="m-0">
-                            <button class="btn btn-link btn-sm text-danger p-0" type="submit">Remove</button>
-                        </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <p class="text-muted mb-4" th:if="${#lists.isEmpty(plan.planItems)}">No places in this plan yet.</p>
+                    </div>
+                    <form th:if="${canModify}" th:action="@{/plans/{id}/items/{itemId}/delete(id=${plan.id}, itemId=${item.id})}"
+                          method="post" class="m-0">
+                        <button class="btn btn-link btn-sm text-danger p-0" type="submit">Remove</button>
+                    </form>
+                </div>
+                <div th:if="${#lists.isEmpty(entry.value)}" class="tp-stop-row small text-muted">No places for this day yet.</div>
+            </div>
 
             <div class="card card-body" id="add-item" th:if="${canModify}">
                 <h3 class="h6 mb-1">Add a place</h3>

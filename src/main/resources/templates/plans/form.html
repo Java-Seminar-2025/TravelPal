@@ -4,8 +4,9 @@
 <head th:replace="~{fragments :: head('Plan')}"></head>
 <body class="bg-light">
 <nav th:replace="~{fragments :: navbar}"></nav>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 
-<main class="container" style="max-width: 540px">
+<main class="container" style="max-width: 640px">
     <h1 class="h3 mb-3" th:text="${planId == null ? 'Create Travel Plan' : 'Edit Travel Plan'}">Create Travel Plan</h1>
 
     <form th:action="${planId == null} ? @{/plans} : @{/plans/{id}/edit(id=${planId})}"
@@ -16,10 +17,20 @@
             <div class="invalid-feedback" th:errors="*{title}"></div>
         </div>
 
+        <!-- City picker: type, press Find, pick a result. plan-form.js fills the hidden coordinates. -->
         <div class="mb-3">
             <label for="city" class="form-label">City</label>
-            <input th:field="*{city}" class="form-control" th:errorclass="is-invalid">
-            <div class="invalid-feedback" th:errors="*{city}"></div>
+            <div class="input-group">
+                <input th:field="*{city}" class="form-control" th:errorclass="is-invalid" placeholder="e.g. Pisa" autocomplete="off">
+                <button id="city-find" class="btn btn-outline-primary" type="button">Find</button>
+            </div>
+            <input type="hidden" th:field="*{cityLatitude}">
+            <input type="hidden" th:field="*{cityLongitude}">
+            <div class="small text-danger mt-1" th:if="${#fields.hasErrors('city')}" th:errors="*{city}"></div>
+            <div class="small text-danger mt-1" th:if="${#fields.hasErrors('cityLatitude')}" th:errors="*{cityLatitude}"></div>
+            <div id="city-results" class="list-group mt-2"></div>
+            <div id="city-status" class="small text-muted mt-1"></div>
+            <div id="city-map" class="border rounded mt-2" style="height: 240px"></div>
         </div>
 
         <div class="mb-3">
@@ -42,5 +53,8 @@
         </div>
     </form>
 </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script th:src="@{/js/plan-form.js}"></script>
 </body>
 </html>

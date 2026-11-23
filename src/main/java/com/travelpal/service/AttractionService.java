@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.travelpal.dto.Attraction;
 import com.travelpal.dto.CityAttractions;
+import com.travelpal.dto.CityOption;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class AttractionService {
     private final RestClient nominatim;
     private final long delayBetweenRequestsMillis;
     private final Map<String, CityAttractions> cache = new ConcurrentHashMap<>();
+    private final Map<String, List<CityOption>> citySearchCache = new ConcurrentHashMap<>();
     private long lastRequestAt = 0;
 
     public AttractionService(RestClient nominatimClient,
@@ -90,6 +92,23 @@ public class AttractionService {
                 .orElseThrow(() -> new NoSuchElementException("City not found: " + cityName));
     }
 
+    /**
+     * Cities, towns and villages matching what the user typed on the plan form (up to 5).
+     * Called only when the user presses "Find", never while typing: Nominatim doesn't allow search-as-you-type.
+     */
+    public List<CityOption> searchCities(String query) {
+        String text = query.trim();
+        if (text.isEmpty()) {
+            return List.of();
+        }
+        return citySearchCache.computeIfAbsent(text.toLowerCase(Locale.ROOT), key -> search(text).stream()
+                .filter(place -> place.addresstype() != null && SETTLEMENT_TYPES.contains(place.addresstype()))
+                .map(place -> new CityOption(place.name(), place.displayName(), place.latitude(), place.longitude()))
+                .distinct()
+                .limit(5)
+                .toList());
+    }
+
     /** One Nominatim search. synchronized + wait = never more than one request per second (their rule). */
     private synchronized List<Place> search(String query) {
         waitForRateLimit();
@@ -120,6 +139,7 @@ public class AttractionService {
     /** The parts of a Nominatim search result we use (it sends lat/lon as text). */
     @JsonIgnoreProperties(ignoreUnknown = true)
     record Place(String name, String lat, String lon, String type, String addresstype,
+                 @JsonProperty("display_name") String displayName,
                  @JsonProperty("osm_type") String osmType,
                  @JsonProperty("osm_id") long osmNumber,
                  Map<String, String> extratags) {

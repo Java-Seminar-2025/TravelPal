@@ -58,7 +58,7 @@ class PlanControllerTest {
         mockMvc.perform(post("/plans").with(csrf())
                         .with(user("explorer").roles("USER"))
                         .param("title", "Split Weekend")
-                        .param("city", "Split")
+                        .param("city", "Split").param("cityLatitude", "43.51").param("cityLongitude", "16.44")
                         .param("days", "3")
                         .param("visibility", "PUBLIC"))
                 .andExpect(status().is3xxRedirection());

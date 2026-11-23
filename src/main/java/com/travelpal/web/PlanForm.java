@@ -19,6 +19,13 @@ public class PlanForm {
     @Size(max = 100, message = "City must be at most 100 characters")
     private String city;
 
+    /** Filled in when the user picks the city from the search results on the form. */
+    @NotNull(message = "Search for the city and pick it from the list")
+    private Double cityLatitude;
+
+    @NotNull(message = "Search for the city and pick it from the list")
+    private Double cityLongitude;
+
     @NotNull(message = "Days count is required")
     @Min(value = 1, message = "Plan must be at least 1 day long")
     @Max(value = 60, message = "Plan cannot exceed 60 days")

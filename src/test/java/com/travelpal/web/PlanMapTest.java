@@ -2,6 +2,7 @@ package com.travelpal.web;
 
 import com.travelpal.dto.Attraction;
 import com.travelpal.dto.CityAttractions;
+import com.travelpal.dto.CityOption;
 import com.travelpal.entity.Plan;
 import com.travelpal.entity.PlanItem;
 import com.travelpal.entity.User;
@@ -114,5 +115,64 @@ class PlanMapTest {
     void attractionsApiRequiresLogin() throws Exception {
         mockMvc.perform(get("/api/attractions").param("city", "Split"))
                 .andExpect(status().is3xxRedirection());
+    }
+
+    // --- city picker ---
+
+    @Test
+    void citySearchApiReturnsChoices() throws Exception {
+        when(attractionService.searchCities("Pisa"))
+                .thenReturn(List.of(new CityOption("Pisa", "Pisa, Toscana, Italia", 43.7159, 10.4019)));
+
+        mockMvc.perform(get("/api/cities").param("q", "Pisa").with(user("explorer")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].label").value("Pisa, Toscana, Italia"))
+                .andExpect(jsonPath("$[0].latitude").value(43.7159));
+    }
+
+    @Test
+    void newPlanStoresThePickedCityLocation() throws Exception {
+        mockMvc.perform(post("/plans").with(csrf()).with(user("explorer"))
+                        .param("title", "Pisa Day Trip").param("city", "Pisa")
+                        .param("cityLatitude", "43.7159").param("cityLongitude", "10.4019")
+                        .param("days", "1").param("visibility", "PRIVATE"))
+                .andExpect(status().is3xxRedirection());
+
+        Plan created = planRepository.findAll().stream()
+                .filter(p -> p.getTitle().equals("Pisa Day Trip")).findFirst().orElseThrow();
+        assertThat(created.getCityLatitude()).isEqualTo(43.7159);
+        assertThat(created.getCityLongitude()).isEqualTo(10.4019);
+    }
+
+    @Test
+    void cityMustBePickedFromTheSearch() throws Exception {
+        mockMvc.perform(post("/plans").with(csrf()).with(user("explorer"))
+                        .param("title", "Somewhere").param("city", "Pisa")
+                        .param("days", "1").param("visibility", "PRIVATE"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("plans/form"))
+                .andExpect(model().attributeHasFieldErrors("planForm", "cityLatitude"));
+    }
+
+    // --- plan list grouped by day ---
+
+    @Test
+    void planPageGroupsStopsByDayIncludingEmptyDays() throws Exception {
+        PlanItem stop = new PlanItem();
+        stop.setPlan(plan);
+        stop.setName("Riva Promenade");
+        stop.setLatitude(43.5078);
+        stop.setLongitude(16.4382);
+        stop.setDayNumber(2);
+        stop.setOrderIndex(1);
+        plan.getPlanItems().add(stop);
+        planRepository.saveAndFlush(plan);
+
+        mockMvc.perform(get("/plans/" + plan.getId()).with(user("explorer")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("itemsByDay", org.hamcrest.Matchers.allOf(
+                        org.hamcrest.Matchers.hasEntry(org.hamcrest.Matchers.is(1), org.hamcrest.Matchers.empty()),
+                        org.hamcrest.Matchers.hasEntry(org.hamcrest.Matchers.is(2), org.hamcrest.Matchers.hasSize(1)))))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("No places for this day yet.")));
     }
 }

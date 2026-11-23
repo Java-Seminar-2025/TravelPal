@@ -1,6 +1,7 @@
 package com.travelpal.web;
 
 import com.travelpal.entity.Plan;
+import com.travelpal.entity.PlanItem;
 import com.travelpal.service.PlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 /**
@@ -136,6 +141,17 @@ public class PlanController {
     private String showDetail(Plan plan, Principal principal, Model model) {
         model.addAttribute("plan", plan);
         model.addAttribute("canModify", planService.canModify(plan, principal.getName()));
+        model.addAttribute("itemsByDay", itemsByDay(plan));
         return "plans/detail";
+    }
+
+    /** Day number -> that day's stops (in order), with an empty list for days that have no stops yet. */
+    private Map<Integer, List<PlanItem>> itemsByDay(Plan plan) {
+        Map<Integer, List<PlanItem>> days = new TreeMap<>();
+        for (int day = 1; day <= plan.getDays(); day++) {
+            days.put(day, new ArrayList<>());
+        }
+        plan.getPlanItems().forEach(item -> days.computeIfAbsent(item.getDayNumber(), d -> new ArrayList<>()).add(item));
+        return days;
     }
 }
