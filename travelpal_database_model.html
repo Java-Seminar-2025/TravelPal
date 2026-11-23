@@ -2881,6 +2881,8 @@ const { svg } = await mermaid.render('erd-svg', `erDiagram
     uuid copied_from_id FK
     string title
     string city
+    double city_latitude
+    double city_longitude
     int days
     string visibility
     boolean ai_generated
@@ -2889,7 +2891,11 @@ const { svg } = await mermaid.render('erd-svg', `erDiagram
   PLAN_ITEMS {
     uuid id PK
     uuid plan_id FK
-    string tripadvisor_location_id
+    string name
+    double latitude
+    double longitude
+    string osm_id
+    string tripadvisor_location_id "optional"
     int day_number
     int order_index
     string note
