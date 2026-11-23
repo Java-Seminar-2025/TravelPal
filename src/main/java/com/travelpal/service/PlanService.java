@@ -111,7 +111,10 @@ public class PlanService {
 
         PlanItem item = new PlanItem();
         item.setPlan(plan);
-        item.setTripadvisorLocationId(form.getTripadvisorLocationId().trim());
+        item.setName(form.getName().trim());
+        item.setLatitude(form.getLatitude());
+        item.setLongitude(form.getLongitude());
+        item.setOsmId(form.getOsmId() != null && !form.getOsmId().isBlank() ? form.getOsmId().trim() : null);
         item.setDayNumber(form.getDayNumber());
         item.setOrderIndex(form.getOrderIndex());
         item.setNote(form.getNote() != null && !form.getNote().isBlank() ? form.getNote().trim() : null);
@@ -150,6 +153,10 @@ public class PlanService {
         for (PlanItem srcItem : source.getPlanItems()) {
             PlanItem itemCopy = new PlanItem();
             itemCopy.setPlan(copy);
+            itemCopy.setName(srcItem.getName());
+            itemCopy.setLatitude(srcItem.getLatitude());
+            itemCopy.setLongitude(srcItem.getLongitude());
+            itemCopy.setOsmId(srcItem.getOsmId());
             itemCopy.setTripadvisorLocationId(srcItem.getTripadvisorLocationId());
             itemCopy.setDayNumber(srcItem.getDayNumber());
             itemCopy.setOrderIndex(srcItem.getOrderIndex());

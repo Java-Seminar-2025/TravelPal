@@ -81,7 +81,7 @@ class PlanOwnershipTest {
         mockMvc.perform(get(url + "/edit").with(stranger)).andExpect(status().isForbidden());
         mockMvc.perform(editRequest(url, "Hacked").with(stranger)).andExpect(status().isForbidden());
         mockMvc.perform(post(url + "/items").with(csrf()).with(stranger)
-                        .param("tripadvisorLocationId", "999").param("dayNumber", "1").param("orderIndex", "2"))
+                        .param("name", "Sneaky spot").param("latitude", "43.5").param("longitude", "16.4").param("dayNumber", "1").param("orderIndex", "2"))
                 .andExpect(status().isForbidden());
         mockMvc.perform(post(url + "/items/" + itemId + "/delete").with(csrf()).with(stranger))
                 .andExpect(status().isForbidden());
@@ -191,7 +191,9 @@ class PlanOwnershipTest {
 
         PlanItem item = new PlanItem();
         item.setPlan(plan);
-        item.setTripadvisorLocationId("12345");
+        item.setName("Diocletian's Palace");
+        item.setLatitude(43.508505);
+        item.setLongitude(16.440249);
         item.setDayNumber(1);
         item.setOrderIndex(1);
         plan.getPlanItems().add(item);
