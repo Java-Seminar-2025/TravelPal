@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${plan.title})}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments :: navbar}"></nav>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" th:href="@{/css/plan.css}">
+
+<main class="container pb-5">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1" th:text="${plan.title}">Plan Title</h1>
+            <p class="text-muted mb-0">
+                <span th:text="${plan.city}">City</span> · <span th:text="${plan.days}">3</span> days
+                · <span class="badge text-bg-secondary" th:text="${plan.visibility}">PRIVATE</span>
+                · Owner: <span th:text="${plan.owner.username}">user</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <form th:if="${plan.visibility.name() == 'PUBLIC'}" th:action="@{/plans/{id}/copy(id=${plan.id})}" method="post">
+                <button class="btn btn-outline-success btn-sm" type="submit">Copy Plan</button>
+            </form>
+            <th:block th:if="${canModify}">
+                <a class="btn btn-outline-primary btn-sm" th:href="@{/plans/{id}/edit(id=${plan.id})}">Edit</a>
+                <form th:action="@{/plans/{id}/delete(id=${plan.id})}" method="post"
+                      onsubmit="return confirm('Delete this plan and all its items? This cannot be undone.')">
+                    <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
+                </form>
+            </th:block>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Map: the plan's stops, walking routes and, for owners/admins, nearby attractions (orange) -->
+        <div class="col-lg-7">
+            <div id="map" class="border rounded" style="height: 520px"
+                 th:data-city="${plan.city}" th:data-lat="${plan.cityLatitude}" th:data-lon="${plan.cityLongitude}"
+                 th:data-can-modify="${canModify}"></div>
+            <p id="route-credit" class="small text-muted mt-2 mb-1" hidden>
+                Walking routes: <a href="https://routing.openstreetmap.de/" target="_blank" rel="noopener">FOSSGIS OSRM</a>,
+                OpenStreetMap data. Always check the way on site.
+            </p>
+            <p id="map-status" class="small text-muted mb-0"></p>
+        </div>
+
+        <div class="col-lg-5">
+            <h2 class="h5 mb-3">Plan</h2>
+
+            <!-- One block per day; the color class matches the day's markers and route on the map -->
+            <div th:each="entry : ${itemsByDay}" class="tp-day"
+                 th:classappend="${'tp-color-' + ((entry.key - 1) % 7)}">
+                <div class="tp-day-header">
+                    <span class="tp-day-title" th:text="${'Day ' + entry.key}">Day 1</span>
+                    <span class="tp-day-route" th:id="${'route-day-' + entry.key}"></span>
+                </div>
+                <!-- data-* attributes are read by plan-map.js to draw the markers -->
+                <div th:each="item : ${entry.value}" class="tp-stop-row plan-item"
+                     th:data-name="${item.name}" th:data-lat="${item.latitude}" th:data-lon="${item.longitude}"
+                     th:data-day="${item.dayNumber}" th:data-order="${item.orderIndex}">
+                    <span class="tp-stop" th:text="${item.orderIndex}">1</span>
+                    <div class="flex-grow-1">
+                        <div th:text="${item.name}">Place</div>
+                        <div class="small text-muted" th:if="${item.note}" th:text="${item.note}">Note</div>
+                    </div>
+                    <form th:if="${canModify}" th:action="@{/plans/{id}/items/{itemId}/delete(id=${plan.id}, itemId=${item.id})}"
+                          method="post" class="m-0">
+                        <button class="btn btn-link btn-sm text-danger p-0" type="submit">Remove</button>
+                    </form>
+                </div>
+                <div th:if="${#lists.isEmpty(entry.value)}" class="tp-stop-row small text-muted">No places for this day yet.</div>
+            </div>
+
+            <div class="card card-body" id="add-item" th:if="${canModify}">
+                <h3 class="h6 mb-1">Add a place</h3>
+                <p class="small text-muted">Click an orange attraction on the map, or click anywhere on the map to mark your own spot.</p>
+                <form th:action="@{/plans/{id}/items(id=${plan.id})}" th:object="${itemForm}" method="post" novalidate>
+                    <input type="hidden" th:field="*{latitude}">
+                    <input type="hidden" th:field="*{longitude}">
+                    <input type="hidden" th:field="*{osmId}">
+                    <div class="mb-2">
+                        <label for="name" class="form-label">Place</label>
+                        <input th:field="*{name}" class="form-control" th:errorclass="is-invalid" placeholder="Pick a place on the map">
+                        <div class="invalid-feedback" th:errors="*{name}"></div>
+                        <div class="small text-danger" th:if="${#fields.hasErrors('latitude')}" th:errors="*{latitude}"></div>
+                        <div id="picked-coords" class="small text-muted"></div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col">
+                            <label for="dayNumber" class="form-label">Day</label>
+                            <input th:field="*{dayNumber}" type="number" min="1" th:max="${plan.days}" class="form-control" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:errors="*{dayNumber}"></div>
+                        </div>
+                        <div class="col">
+                            <label for="orderIndex" class="form-label">Order</label>
+                            <input th:field="*{orderIndex}" type="number" min="0" class="form-control" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:errors="*{orderIndex}"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="note" class="form-label">Note <span class="text-muted small">(optional)</span></label>
+                        <input th:field="*{note}" class="form-control" th:errorclass="is-invalid">
+                        <div class="invalid-feedback" th:errors="*{note}"></div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" type="submit">Add to plan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script th:src="@{/js/plan-map.js}"></script>
+</body>
+</html>

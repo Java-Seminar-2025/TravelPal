@@ -37,6 +37,13 @@ public class Plan {
     @Column(nullable = false, length = 100)
     private String city;
 
+    /** Where the city is (picked from OpenStreetMap). Null for plans made before the city picker existed. */
+    @Column(name = "city_latitude")
+    private Double cityLatitude;
+
+    @Column(name = "city_longitude")
+    private Double cityLongitude;
+
     @Column(nullable = false)
     private Integer days;
 

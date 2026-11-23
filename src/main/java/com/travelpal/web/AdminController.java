@@ -1,8 +1,7 @@
 package com.travelpal.web;
 
-import com.travelpal.repository.UserRepository;
+import com.travelpal.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,11 +11,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/admin")
     public String admin(Model model) {
-        model.addAttribute("users", userRepository.findAll(Sort.by("createdAt")));
+        model.addAttribute("users", userService.findAllUsers());
         return "admin";
     }
 }

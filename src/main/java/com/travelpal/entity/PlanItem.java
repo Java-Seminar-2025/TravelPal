@@ -26,7 +26,18 @@ public class PlanItem {
     @JoinColumn(name = "plan_id", nullable = false)
     private Plan plan;
 
-    @Column(name = "tripadvisor_location_id", nullable = false, length = 30)
+    @Column(nullable = false, length = 200)
+    private String name;
+
+    /** Map position. Null only for old items created before the map existed. */
+    private Double latitude;
+    private Double longitude;
+
+    /** OpenStreetMap id (e.g. "w43768260"), or null for a spot the user clicked on the map. */
+    @Column(name = "osm_id", length = 40)
+    private String osmId;
+
+    @Column(name = "tripadvisor_location_id", length = 30)
     private String tripadvisorLocationId;
 
     @Column(name = "day_number", nullable = false)
